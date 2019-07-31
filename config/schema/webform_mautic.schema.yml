@@ -1,0 +1,11 @@
+webform.handler.mautic:
+  type: mapping
+  label: 'Mautic'
+  mapping:
+    completed_url:
+      label: 'Completed URL'
+      type: uri
+    completed_custom_data:
+      label: 'Completed custom data'
+      type: string
+
