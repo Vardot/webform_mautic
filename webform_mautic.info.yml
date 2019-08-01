@@ -4,5 +4,6 @@ description: 'Allows to send Webform submissions to Mautic lists.'
 package: 'Webform'
 core: 8.x
 dependencies:
-  - 'webform:webform'
+  - webform:webform
+  - mautic:mautic
 
