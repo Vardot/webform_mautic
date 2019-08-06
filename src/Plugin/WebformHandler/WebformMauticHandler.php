@@ -119,7 +119,7 @@ class WebformMauticHandler extends WebformHandlerBase {
     return [
       '#theme' => 'markup',
       '#markup' => $debuging_status .
-      '<b>Mautic form id:</b> ' . $settings['mautic_form_id'] .
+      '<b>Mautic form ID:</b> ' . $settings['mautic_form_id'] .
       '</br><b>Mautic domain:</b> ' . $settings['completed_url'],
     ];
   }
