@@ -179,12 +179,14 @@ class WebformMauticHandler extends WebformHandlerBase {
         '#type' => 'url',
         '#title' => $this->t('Mautic domain'),
         '#required' => ($state === WebformSubmissionInterface::STATE_COMPLETED),
+        '#description' => 'The domain name of the mautic web host.',
         '#default_value' => $this->configuration[$state_url],
       ];
       $form[$state]['mautic_form_id'] = [
         '#type' => 'number',
         '#required' => ($state === WebformSubmissionInterface::STATE_COMPLETED),
         '#title' => $this->t('Mautic form ID'),
+        '#description' => 'The mautic form id.',
         '#default_value' => $this->configuration['mautic_form_id'],
       ];
       if ($state === WebformSubmissionInterface::STATE_COMPLETED) {
@@ -279,7 +281,7 @@ class WebformMauticHandler extends WebformHandlerBase {
 
     try {
       $method = strtolower($request_method);
-      $domain = $domain_url;
+      $domain = preg_replace("(^https?://)", "", $domain_url);
       $values = [
         'mautic_referer_id' => $_COOKIE['mautic_referer_id'],
         'mautic_session_id' => $_COOKIE['mautic_session_id'],
@@ -607,7 +609,7 @@ class WebformMauticHandler extends WebformHandlerBase {
           '#wrapper_attributes' => ['style' => 'margin: 0'],
           '#title' => $this->t('Response data:'),
           'data' => [
-            '#markup' => Yaml::encode(strval($response_data)),
+            '#markup' => Yaml::encode($response_data),
             '#prefix' => '<pre>',
             '#suffix' => '</pre>',
           ],
