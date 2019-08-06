@@ -3,9 +3,12 @@ webform.handler.mautic:
   label: 'Mautic'
   mapping:
     completed_url:
-      label: 'Completed URL'
+      label: 'Mautic domain'
       type: uri
+    mautic_form_id:
+      label: 'Mautic form ID'
+      type: number
     completed_custom_data:
-      label: 'Completed custom data'
+      label: 'Mautic custom data'
       type: string
 

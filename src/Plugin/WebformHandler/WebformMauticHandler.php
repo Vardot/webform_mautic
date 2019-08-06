@@ -112,21 +112,16 @@ class WebformMauticHandler extends WebformHandlerBase {
   public function getSummary() {
     $configuration = $this->getConfiguration();
     $settings = $configuration['settings'];
-
-    if (!$this->isResultsEnabled()) {
-      $settings['updated_url'] = '';
-      $settings['deleted_url'] = '';
-    }
-    if (!$this->isDraftEnabled()) {
-      $settings['draft_url'] = '';
-    }
-    if (!$this->isConvertEnabled()) {
-      $settings['converted_url'] = '';
-    }
-
+    if ($settings['debug'])
+      $debuging_status = '<b class="color-error">Debugging is enabled</b></br>';
+    else
+      $debuging_status = '';
     return [
-      '#settings' => $settings,
-      ] + parent::getSummary();
+      '#theme' => 'markup',
+      '#markup' => $debuging_status .
+      '<b>Mautic form id:</b> ' . $settings['mautic_form_id'] .
+      '</br><b>Mautic domain:</b> ' . $settings['completed_url'],
+    ];
   }
 
   /**
@@ -140,19 +135,11 @@ class WebformMauticHandler extends WebformHandlerBase {
       'type' => 'x-www-form-urlencoded',
       'excluded_data' => $excluded_data,
       'custom_data' => '',
-      'custom_options' => '',
       'debug' => FALSE,
       // States.
       'completed_url' => '',
       'completed_custom_data' => '',
-      'updated_url' => '',
-      'updated_custom_data' => '',
-      'deleted_url' => '',
-      'deleted_custom_data' => '',
-      'draft_url' => '',
-      'draft_custom_data' => '',
-      'converted_url' => '',
-      'converted_custom_data' => '',
+      'mautic_form_id' => '',
       // Custom response messages.
       'message' => '',
       'messages' => [],
@@ -179,40 +166,59 @@ class WebformMauticHandler extends WebformHandlerBase {
       $t_args = [
         '@state' => $state_item['state'],
         '@title' => $state_item['label'],
-        '@url' => 'http://www.mycrm.com/form_' . $state . '_handler.php',
+        '@url' => 'https://engage.vardot.com',
       ];
       $form[$state] = [
         '#type' => 'details',
         '#open' => ($state === WebformSubmissionInterface::STATE_COMPLETED),
-        '#title' => $state_item['label'],
-        '#description' => $state_item['description'],
+        '#title' => 'Mautic Settings',
+        '#description' => 'Post data when submission is completed.',
         '#access' => $state_item['access'],
       ];
       $form[$state][$state_url] = [
         '#type' => 'url',
-        '#title' => $this->t('@title URL', $t_args),
-        '#description' => $this->t('The full URL to POST to when an existing webform submission is @state. (e.g. @url)', $t_args),
+        '#title' => $this->t('Mautic domain'),
         '#required' => ($state === WebformSubmissionInterface::STATE_COMPLETED),
         '#default_value' => $this->configuration[$state_url],
       ];
-      $form[$state][$state_custom_data] = [
-        '#type' => 'webform_codemirror',
-        '#mode' => 'yaml',
-        '#title' => $this->t('@title custom data', $t_args),
-        '#description' => $this->t('Enter custom data that will be included when a webform submission is @state.', $t_args),
-        '#states' => ['visible' => [':input[name="settings[' . $state_url . ']"]' => ['filled' => TRUE]]],
-        '#default_value' => $this->configuration[$state_custom_data],
+      $form[$state]['mautic_form_id'] = [
+        '#type' => 'number',
+        '#required' => ($state === WebformSubmissionInterface::STATE_COMPLETED),
+        '#title' => $this->t('Mautic form ID'),
+        '#default_value' => $this->configuration['mautic_form_id'],
       ];
       if ($state === WebformSubmissionInterface::STATE_COMPLETED) {
         $form[$state]['token'] = [
           '#type' => 'webform_message',
-          '#message_message' => $this->t('Response data can be passed to the submission data using [webform:handler:{machine_name}:{state}:{key}] tokens. (i.e. [webform:handler:remote_post:completed:confirmation_number])'),
+          '#message_message' => $this->t('Please pass the name of the corresponded Mautic form field between the Mautic form brackets'),
           '#message_type' => 'info',
         ];
       }
+      $elements = $webform->getElementsInitializedFlattenedAndHasValue('view');
+      $mautic_submissions = '';
+      if ($this->configuration[$state_custom_data] != '') {
+        $mautic_submissions = $this->configuration[$state_custom_data];
+      } else {
+        foreach ($elements as $key => $value) {
+          end($elements);
+          if ($key === key($elements)) {
+            $mautic_submissions = $mautic_submissions . "mauticform[]: '[webform_submission:values:$key]'";
+          } else {
+            $mautic_submissions = $mautic_submissions . "mauticform[]: '[webform_submission:values:$key]'\n";
+          }
+        }
+      }
+      $form[$state][$state_custom_data] = [
+        '#type' => 'webform_codemirror',
+        '#mode' => 'yaml',
+        '#title' => $this->t('Mautic custom data'),
+        '#description' => $this->t('Enter custom data that will be included when a webform submission is @state.', $t_args),
+        '#states' => ['visible' => [':input[name="settings[' . $state_url . ']"]' => ['filled' => TRUE]]],
+        '#default_value' => $mautic_submissions,
+      ];
     }
-    
-    /*// Development.
+
+    // Development.
     $form['development'] = [
       '#type' => 'details',
       '#title' => $this->t('Development settings'),
@@ -223,7 +229,7 @@ class WebformMauticHandler extends WebformHandlerBase {
       '#description' => $this->t('If checked, posted submissions will be displayed onscreen to all users.'),
       '#return_value' => TRUE,
       '#default_value' => $this->configuration['debug'],
-    ];*/
+    ];
 
     $this->elementTokenValidate($form);
     return $this->setSettingsParents($form);
@@ -262,40 +268,33 @@ class WebformMauticHandler extends WebformHandlerBase {
 
     $this->messageManager->setWebformSubmission($webform_submission);
 
-    $request_url = $this->configuration[$state . '_url'];
-    $request_url = $this->replaceTokens($request_url, $webform_submission);
-    $request_method = (!empty($this->configuration['method'])) ? $this->configuration['method'] : 'POST';
-    $request_type = ($request_method !== 'GET') ? $this->configuration['type'] : NULL;
+    $domain_url = $this->configuration[$state . '_url'];
+    $request_url = $domain_url . '/form/submit?formId=' . $this->configuration['mautic_form_id'];
+    $request_method = 'POST';
+    $request_type = NULL;
 
     // Get request options with tokens replaced.
-    $request_options = (!empty($this->configuration['custom_options'])) ? Yaml::decode($this->configuration['custom_options']) : [];
+    $request_options = [];
     $request_options = $this->replaceTokens($request_options, $webform_submission);
 
     try {
-      if ($request_method === 'GET') {
-        // Append data as query string to the request URL.
-        $query = $this->getRequestData($state, $webform_submission);
-        $request_url = Url::fromUri($request_url, ['query' => $query])->toString();
-        $response = $this->httpClient->get($request_url, $request_options);
-      } else {
-        $method = strtolower($request_method);
-        $domain = 'engage.vardot.com';
-        $values = [
-          'mautic_referer_id' => $_COOKIE['mautic_referer_id'],
-          'mautic_session_id' => $_COOKIE['mautic_session_id'],
-          'mautic_device_id' => $_COOKIE['mautic_device_id'],
-          'mtc_id' => $_COOKIE['mtc_id'],
-          'mtc_sid' => $_COOKIE['mtc_sid'],
-        ];
-        $cookieJar = \GuzzleHttp\Cookie\CookieJar::fromArray($values, $domain);
-        $ip_address = $webform_submission->getRemoteAddr();
+      $method = strtolower($request_method);
+      $domain = $domain_url;
+      $values = [
+        'mautic_referer_id' => $_COOKIE['mautic_referer_id'],
+        'mautic_session_id' => $_COOKIE['mautic_session_id'],
+        'mautic_device_id' => $_COOKIE['mautic_device_id'],
+        'mtc_id' => $_COOKIE['mtc_id'],
+        'mtc_sid' => $_COOKIE['mtc_sid'],
+      ];
+      $cookieJar = \GuzzleHttp\Cookie\CookieJar::fromArray($values, $domain);
+      $ip_address = $webform_submission->getRemoteAddr();
 
-        $request_options[RequestOptions::COOKIES] = $cookieJar;
-        $request_options[RequestOptions::HEADERS]['X-Forwarded-For'] = $ip_address;
-        $request_options[($request_type == 'json' ? 'json' : 'form_params')] = $this->getRequestData($state, $webform_submission);
+      $request_options[RequestOptions::COOKIES] = $cookieJar;
+      $request_options[RequestOptions::HEADERS]['X-Forwarded-For'] = $ip_address;
+      $request_options[($request_type == 'json' ? 'json' : 'form_params')] = $this->getRequestData($state, $webform_submission);
 
-        $response = $this->httpClient->$method($request_url, $request_options);
-      }
+      $response = $this->httpClient->$method($request_url, $request_options);
     } catch (RequestException $request_exception) {
       $response = $request_exception->getResponse();
 
@@ -576,7 +575,7 @@ class WebformMauticHandler extends WebformHandlerBase {
       '#title' => $this->t('Request options'),
       '#wrapper_attributes' => ['style' => 'margin: 0'],
       'data' => [
-        '#markup' => htmlspecialchars(dpm($request_options)),
+        '#markup' => htmlspecialchars(Yaml::encode($request_options['form_params'])),
         '#prefix' => '<pre>',
         '#suffix' => '</pre>',
       ],
@@ -587,19 +586,9 @@ class WebformMauticHandler extends WebformHandlerBase {
     if ($response) {
       $build['response_code'] = [
         '#type' => 'item',
-        '#title' => $this->t('Response status code:'),
+        '#title' => $this->t('Response status code'),
         '#markup' => $response->getStatusCode(),
         '#wrapper_attributes' => ['class' => ['container-inline'], 'style' => 'margin: 0'],
-      ];
-      $build['response_header'] = [
-        '#type' => 'item',
-        '#title' => $this->t('Response header:'),
-        '#wrapper_attributes' => ['style' => 'margin: 0'],
-        'data' => [
-          '#markup' => htmlspecialchars(dpm($response->getHeaders())),
-          '#prefix' => '<pre>',
-          '#suffix' => '</pre>',
-        ],
       ];
       $build['response_body'] = [
         '#type' => 'item',
@@ -618,7 +607,7 @@ class WebformMauticHandler extends WebformHandlerBase {
           '#wrapper_attributes' => ['style' => 'margin: 0'],
           '#title' => $this->t('Response data:'),
           'data' => [
-            '#markup' => dpm($response_data),
+            '#markup' => Yaml::encode(strval($response_data)),
             '#prefix' => '<pre>',
             '#suffix' => '</pre>',
           ],
