@@ -288,9 +288,10 @@ class WebformMauticHandler extends WebformHandlerBase {
           'mtc_sid' => $_COOKIE['mtc_sid'],
         ];
         $cookieJar = \GuzzleHttp\Cookie\CookieJar::fromArray($values, $domain);
+        $ip_address = $webform_submission->getRemoteAddr();
 
-        //$request_options['cookies'] = $cookieJar;
         $request_options[RequestOptions::COOKIES] = $cookieJar;
+        $request_options[RequestOptions::HEADERS]['X-Forwarded-For'] = $ip_address;
         $request_options[($request_type == 'json' ? 'json' : 'form_params')] = $this->getRequestData($state, $webform_submission);
 
         $response = $this->httpClient->$method($request_url, $request_options);
