@@ -120,7 +120,7 @@ class WebformMauticHandler extends WebformHandlerBase {
       '#theme' => 'markup',
       '#markup' => $debuging_status .
       '<b>Mautic form ID:</b> ' . $settings['mautic_form_id'] .
-      '</br><b>Mautic domain:</b> ' . $settings['completed_url'],
+      '</br><b>Mautic URL:</b> ' . $settings['completed_url'],
     ];
   }
 
@@ -179,7 +179,7 @@ class WebformMauticHandler extends WebformHandlerBase {
         '#type' => 'url',
         '#title' => $this->t('Mautic URL'),
         '#required' => ($state === WebformSubmissionInterface::STATE_COMPLETED),
-        '#description' => 'The full URL of your Mautic instance. (e.g. https://mymautic.mautic.com). Make sure to include http:// or https://',
+        '#description' => 'The full URL of your Mautic instance. (e.g. https://mymautic.mautic.com). Make sure to include http:// or https://. Do NOT include a trailing slash.',
         '#default_value' => $this->configuration[$state_url],
       ];
       $form[$state]['mautic_form_id'] = [
