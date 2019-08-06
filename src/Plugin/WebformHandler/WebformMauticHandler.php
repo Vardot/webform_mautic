@@ -166,7 +166,7 @@ class WebformMauticHandler extends WebformHandlerBase {
       $t_args = [
         '@state' => $state_item['state'],
         '@title' => $state_item['label'],
-        '@url' => 'https://engage.vardot.com',
+        '@url' => 'https://mymautic.mautic.com',
       ];
       $form[$state] = [
         '#type' => 'details',
