@@ -192,7 +192,7 @@ class WebformMauticHandler extends WebformHandlerBase {
       if ($state === WebformSubmissionInterface::STATE_COMPLETED) {
         $form[$state]['token'] = [
           '#type' => 'webform_message',
-          '#message_message' => $this->t('Webform submission data has to correspond to your Mautic form fields. Each Mautic form field must be entered instead of <code>CHANGE_ME</code> in <code>mauticform[CHANGE_ME]</code> keys. Webform submission tokens are the values mapped to those fields.'),
+          '#message_message' => $this->t('Webform submission data has to correspond to your Mautic form fields. Each Mautic form field name should be entered in the data mapping below. You can choose to map certain fields only as you wish.'),
           '#message_type' => 'info',
         ];
       }
@@ -214,7 +214,7 @@ class WebformMauticHandler extends WebformHandlerBase {
         '#type' => 'webform_codemirror',
         '#mode' => 'yaml',
         '#title' => $this->t('Mautic submission data mapping'),
-        '#description' => $this->t('Edit the form data that will be sent to Mautic when a webform submission is @state.', $t_args),
+        '#description' => $this->t('Edit the form data that will be sent to Mautic when a webform submission is @state. Replace <code>CHANGE_ME</code> in <code>mauticform[CHANGE_ME]</code> keys with your Mautic field names. Webform submission tokens are the values mapped to those fields.', $t_args),
         '#states' => ['visible' => [':input[name="settings[' . $state_url . ']"]' => ['filled' => TRUE]]],
         '#default_value' => $mautic_submissions,
       ];
