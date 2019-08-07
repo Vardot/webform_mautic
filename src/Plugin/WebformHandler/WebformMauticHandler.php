@@ -295,6 +295,12 @@ class WebformMauticHandler extends WebformHandlerBase {
       $request_options[RequestOptions::COOKIES] = $cookieJar;
       $request_options[RequestOptions::HEADERS]['X-Forwarded-For'] = $ip_address;
       $request_options[($request_type == 'json' ? 'json' : 'form_params')] = $this->getRequestData($state, $webform_submission);
+      $request_options['form_params'] = array_merge(
+        array(
+        'mauticform[formId]' => $this->configuration['mautic_form_id'],
+        'mauticform[return]' => \Drupal::request()->getSchemeAndHttpHost(),
+        'mauticform[messenger]' => '1'
+        ), $request_options['form_params']);
 
       $response = $this->httpClient->$method($request_url, $request_options);
     } catch (RequestException $request_exception) {
