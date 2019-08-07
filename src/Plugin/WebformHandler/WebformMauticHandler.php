@@ -204,9 +204,9 @@ class WebformMauticHandler extends WebformHandlerBase {
         foreach ($elements as $key => $value) {
           end($elements);
           if ($key === key($elements)) {
-            $mautic_submissions = $mautic_submissions . "mauticform[]: '[webform_submission:values:$key]'";
+            $mautic_submissions = $mautic_submissions . "mauticform[CHANGE_ME]: '[webform_submission:values:$key]'";
           } else {
-            $mautic_submissions = $mautic_submissions . "mauticform[]: '[webform_submission:values:$key]'\n";
+            $mautic_submissions = $mautic_submissions . "mauticform[CHANGE_ME]: '[webform_submission:values:$key]'\n";
           }
         }
       }
