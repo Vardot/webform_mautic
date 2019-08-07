@@ -31,7 +31,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   id = "mautic",
  *   label = @Translation("Mautic"),
  *   category = @Translation("Mautic"),
- *   description = @Translation("Sends a form submission to a Mautic list."),
+ *   description = @Translation("Sends a form submission to a Mautic form."),
  *   cardinality = \Drupal\webform\Plugin\WebformHandlerInterface::CARDINALITY_SINGLE,
  *   results = \Drupal\webform\Plugin\WebformHandlerInterface::RESULTS_IGNORED,
  *   submission = \Drupal\webform\Plugin\WebformHandlerInterface::SUBMISSION_REQUIRED,
