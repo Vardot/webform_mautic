@@ -282,12 +282,17 @@ class WebformMauticHandler extends WebformHandlerBase {
     try {
       $method = strtolower($request_method);
       $domain = preg_replace("(^https?://)", "", $domain_url);
+      $mautic_referer_id = (isset($_COOKIE['mautic_referer_id'])) ? $_COOKIE['mautic_referer_id'] : "";
+      $mautic_session_id = (isset($_COOKIE['mautic_session_id'])) ? $_COOKIE['mautic_session_id'] : "";
+      $mautic_device_id = (isset($_COOKIE['mautic_device_id'])) ? $_COOKIE['mautic_device_id'] : "";
+      $mtc_id = (isset($_COOKIE['mtc_id'])) ? $_COOKIE['mtc_id'] : "";
+      $mtc_sid = (isset($_COOKIE['mtc_sid'])) ? $_COOKIE['mtc_sid'] : "";
       $values = [
-        'mautic_referer_id' => $_COOKIE['mautic_referer_id'],
-        'mautic_session_id' => $_COOKIE['mautic_session_id'],
-        'mautic_device_id' => $_COOKIE['mautic_device_id'],
-        'mtc_id' => $_COOKIE['mtc_id'],
-        'mtc_sid' => $_COOKIE['mtc_sid'],
+        'mautic_referer_id' => $mautic_referer_id,
+        'mautic_session_id' => $mautic_session_id,
+        'mautic_device_id' => $mautic_device_id,
+        'mtc_id' => $mtc_id,
+        'mtc_sid' => $mtc_sid,
       ];
       $cookieJar = \GuzzleHttp\Cookie\CookieJar::fromArray($values, $domain);
       $ip_address = $webform_submission->getRemoteAddr();
