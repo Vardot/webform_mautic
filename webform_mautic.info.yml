@@ -3,6 +3,5 @@ type: module
 description: 'Allows to send Webform submissions as contacts through Mautic forms.'
 package: 'Webform'
 core_version_requirement: ^8 || ^9 || ^10
-project: 'webform_mautic'
 dependencies:
   - webform:webform

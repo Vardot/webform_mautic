@@ -77,7 +77,4 @@ FEATURES
 
 MAINTAINERS
 -----------
-
- * Mohammed Razem - https://www.drupal.org/u/mohammed-j-razem
- * Muath Khraisat - https://www.drupal.org/u/muath-khraisat
  * Sponsored by Vardot  - https://www.vardot.com

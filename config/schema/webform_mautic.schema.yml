@@ -11,4 +11,3 @@ webform.handler.mautic:
     completed_custom_data:
       label: 'Mautic custom data'
       type: string
-
